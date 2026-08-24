@@ -9,5 +9,6 @@ test-results/
 .env.*.local
 !.env.example
 *.log
+*.tsbuildinfo
 .DS_Store
 drizzle/meta/

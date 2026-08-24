@@ -43,12 +43,11 @@ A partial GiST exclusion constraint rejects any X _and_ Y overlap while status i
 `payment_pending`, or `owned`. Adjacent rectangles are valid. This database constraint, not a
 client availability check, is the concurrency guarantee.
 
-Checkout creation validates integers, bounds, minimum size (area ≥ 100 and width/height ≥ 4),
-maximum area, color, normalized HTTP(S) URL, origin, rate limit, and Turnstile. The reservation
-insert snapshots the unit price from currently owned pixels (founding $0.20/px until 10,000
-owned pixels, then $0.25/px) and the overlap decision happens in one transaction using database
-time. Stripe creation uses the reservation UUID as its idempotency key. A request UUID uniquely
-identifies retries of the same browser attempt.
+Checkout creation validates integers, bounds, the two-pixel minimum, color, normalized HTTP(S)
+URL, origin, rate limit, and Turnstile. The reservation insert snapshots the fixed $0.25 unit
+price and total, and the overlap decision happens in one transaction using database time. Stripe
+creation uses the reservation UUID as its idempotency key. A request UUID uniquely identifies
+retries of the same browser attempt.
 
 ## Payment state machine
 

@@ -6,8 +6,6 @@ import { useCallback, useMemo, useState } from "react";
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
-  FOUNDING_PIXEL_CAP,
-  FOUNDING_PRICE_CENTS,
   MIN_SELECTION_HEIGHT,
   MIN_SELECTION_PIXELS,
   MIN_SELECTION_WIDTH,
@@ -23,7 +21,6 @@ import { TurnstileWidget } from "./TurnstileWidget";
 type InspectorProps = {
   selection: PixelRect | null;
   evaluation: SelectionEvaluation | null;
-  soldPixels: number;
   color: string;
   destinationUrl: string;
   checkoutPending: boolean;
@@ -38,7 +35,6 @@ type InspectorProps = {
 export function Inspector({
   selection,
   evaluation,
-  soldPixels,
   color,
   destinationUrl,
   checkoutPending,
@@ -62,10 +58,7 @@ export function Inspector({
     !colorError &&
     destinationUrl.trim().length > 0 &&
     (!turnstileRequired || Boolean(turnstileToken));
-  const foundingRemaining = Math.max(0, FOUNDING_PIXEL_CAP - soldPixels);
-  const unitPriceCents =
-    evaluation?.unitPriceCents ??
-    (soldPixels < FOUNDING_PIXEL_CAP ? FOUNDING_PRICE_CENTS : UNIT_PRICE_CENTS);
+  const unitPriceCents = evaluation?.unitPriceCents ?? UNIT_PRICE_CENTS;
 
   const validationText = useMemo(() => {
     if (!selection || !evaluation) return null;
@@ -86,13 +79,9 @@ export function Inspector({
             <p>{PRODUCT_TAGLINE}</p>
             <p>
               This is a public mosaic — a finite internet object, not an ad slot and not an NFT.
-              Minimum {MIN_SELECTION_WIDTH}×{MIN_SELECTION_HEIGHT} and {MIN_SELECTION_PIXELS}{" "}
-              pixels. Suggested starter: {SUGGESTED_STARTER_SIZE}×{SUGGESTED_STARTER_SIZE}.
-            </p>
-            <p>
-              {foundingRemaining > 0
-                ? `Founding rate ${formatUsd(FOUNDING_PRICE_CENTS)}/px for the first ${FOUNDING_PIXEL_CAP.toLocaleString()} pixels sold.`
-                : `Standard rate ${formatUsd(UNIT_PRICE_CENTS)}/px.`}
+              Every logical pixel is {formatUsd(UNIT_PRICE_CENTS)}. Select at least{" "}
+              {MIN_SELECTION_PIXELS} pixels; a {SUGGESTED_STARTER_SIZE}×{SUGGESTED_STARTER_SIZE}{" "}
+              starter is available as a shortcut.
             </p>
             <button type="button" className="secondary-button" onClick={onPlaceStarter}>
               Place a {SUGGESTED_STARTER_SIZE}×{SUGGESTED_STARTER_SIZE} starter
@@ -299,9 +288,7 @@ export function Inspector({
             <span>
               {evaluation.pixelCount.toLocaleString()} px × {formatUsd(unitPriceCents)}
               <br />
-              {unitPriceCents === FOUNDING_PRICE_CENTS
-                ? "Founding rate · one-time"
-                : "One-time purchase"}
+              One-time purchase
             </span>
             <strong>{formatUsd(evaluation.priceCents)}</strong>
           </div>
@@ -318,8 +305,9 @@ export function Inspector({
             {checkoutPending ? "Reserving…" : "Continue to secure checkout"}
           </button>
           <div className="checkout-note">
-            Price is snapshotted on the server when you reserve. Pay with Stripe or Link. Ownership
-            is granted only after a verified Stripe webhook confirms payment.
+            The fixed {formatUsd(UNIT_PRICE_CENTS)} price and availability are rechecked on the
+            server. Pay with Stripe or Link. Ownership is granted only after a verified Stripe
+            webhook confirms payment.
           </div>
         </div>
       </div>

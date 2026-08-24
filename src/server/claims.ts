@@ -5,7 +5,7 @@ import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import type Stripe from "stripe";
 import type { z } from "zod";
 
-import { RESERVATION_LEASE_MINUTES } from "@/lib/constants";
+import { RESERVATION_LEASE_MINUTES, UNIT_PRICE_CENTS } from "@/lib/constants";
 import { snapshotReservationPrice } from "@/lib/pricing";
 import type { OwnershipManifest, ReservationStatus } from "@/lib/types";
 import type { checkoutRequestSchema } from "@/lib/validation";
@@ -25,6 +25,7 @@ export type CheckoutResult = {
 
 export async function createCheckout(input: CheckoutInput): Promise<CheckoutResult> {
   const db = getDatabase();
+  const price = snapshotReservationPrice(input.rect.width, input.rect.height);
   let claim: Claim;
 
   try {
@@ -59,18 +60,6 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
         }
         return existing;
       }
-
-      const [owned] = await transaction
-        .select({
-          soldPixels: sql<number>`coalesce(sum((${claims.width})::bigint * (${claims.height})::bigint), 0)`,
-        })
-        .from(claims)
-        .where(eq(claims.status, "owned"));
-      const price = snapshotReservationPrice(
-        input.rect.width,
-        input.rect.height,
-        Number(owned?.soldPixels ?? 0),
-      );
 
       const [created] = await transaction
         .insert(claims)
@@ -266,7 +255,9 @@ function sameCheckoutRequest(claim: Claim, input: CheckoutInput): boolean {
     claim.width === input.rect.width &&
     claim.height === input.rect.height &&
     claim.color === input.color &&
-    claim.destinationUrl === input.destinationUrl
+    claim.destinationUrl === input.destinationUrl &&
+    claim.unitPriceCents === UNIT_PRICE_CENTS &&
+    claim.totalCents === input.rect.width * input.rect.height * UNIT_PRICE_CENTS
   );
 }
 

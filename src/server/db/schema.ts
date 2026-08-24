@@ -19,7 +19,6 @@ import {
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
-  FOUNDING_PRICE_CENTS,
   MAX_SELECTION_PIXELS,
   MIN_SELECTION_HEIGHT,
   MIN_SELECTION_PIXELS,
@@ -82,10 +81,7 @@ export const claims = pgTable(
       "claims_selection_size",
       sql`${table.width} >= ${MIN_SELECTION_WIDTH} and ${table.height} >= ${MIN_SELECTION_HEIGHT} and ${table.width} * ${table.height} >= ${MIN_SELECTION_PIXELS} and ${table.width} * ${table.height} <= ${MAX_SELECTION_PIXELS}`,
     ),
-    check(
-      "claims_unit_price",
-      sql`${table.unitPriceCents} in (${FOUNDING_PRICE_CENTS}, ${UNIT_PRICE_CENTS})`,
-    ),
+    check("claims_unit_price", sql`${table.unitPriceCents} = ${UNIT_PRICE_CENTS}`),
     check(
       "claims_price_snapshot",
       sql`${table.unitPriceCents} > 0 and ${table.totalCents} = ${table.width} * ${table.height} * ${table.unitPriceCents}`,

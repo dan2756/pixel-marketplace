@@ -6,8 +6,8 @@ import {
   MIN_SELECTION_HEIGHT,
   MIN_SELECTION_PIXELS,
   MIN_SELECTION_WIDTH,
+  UNIT_PRICE_CENTS,
 } from "./constants";
-import { unitPriceCentsForSoldPixels } from "./pricing";
 import type { PixelRect, Point, SelectionEvaluation } from "./types";
 
 export function rectFromCells(start: Point, end: Point): PixelRect {
@@ -96,13 +96,8 @@ export function selectionConstraintReason(rect: PixelRect): string | undefined {
   return undefined;
 }
 
-export function evaluateSelection(
-  rect: PixelRect,
-  hasOverlap: boolean,
-  soldPixels = 0,
-): SelectionEvaluation {
+export function evaluateSelection(rect: PixelRect, hasOverlap: boolean): SelectionEvaluation {
   const pixelCount = rectArea(rect);
-  const unitPriceCents = unitPriceCentsForSoldPixels(Math.max(0, soldPixels));
   let reason = selectionConstraintReason(rect);
 
   if (!reason && hasOverlap) {
@@ -112,8 +107,8 @@ export function evaluateSelection(
   return {
     rect,
     pixelCount,
-    unitPriceCents,
-    priceCents: pixelCount > 0 ? pixelCount * unitPriceCents : 0,
+    unitPriceCents: UNIT_PRICE_CENTS,
+    priceCents: pixelCount > 0 ? pixelCount * UNIT_PRICE_CENTS : 0,
     valid: reason === undefined,
     reason,
   };

@@ -6,18 +6,14 @@ export const BOARD_CELL_COUNT = BOARD_WIDTH * BOARD_HEIGHT;
 // This canvas is an honest 720p frame: 1280×720 = 921,600 pixels.
 
 export const UNIT_PRICE_CENTS = 25;
-export const FOUNDING_PRICE_CENTS = 20;
-export const FOUNDING_PIXEL_CAP = 10_000;
 
-export const MIN_SELECTION_PIXELS = 100;
-export const MIN_SELECTION_WIDTH = 4;
-export const MIN_SELECTION_HEIGHT = 4;
-export const MAX_SELECTION_PIXELS = 10_000;
+export const MIN_SELECTION_PIXELS = 2;
+export const MIN_SELECTION_WIDTH = 1;
+export const MIN_SELECTION_HEIGHT = 1;
+export const MAX_SELECTION_PIXELS = BOARD_CELL_COUNT;
 export const SUGGESTED_STARTER_SIZE = 10;
 
-// Stripe's $0.50 floor is an implementation detail, not a product minimum.
-// The 100-pixel floor is well above it and is the figure we show in UX.
-export const MIN_CHARGE_CENTS = MIN_SELECTION_PIXELS * FOUNDING_PRICE_CENTS;
+export const MIN_CHARGE_CENTS = MIN_SELECTION_PIXELS * UNIT_PRICE_CENTS;
 
 export const RESERVATION_LEASE_MINUTES = 31;
 

@@ -84,7 +84,6 @@ export function PixelMarketplace() {
         selection.y + selection.height <= BOARD_HEIGHT
         ? selectionOverlapsOwnership(selection, ownershipIndex)
         : false,
-      claimedPixels,
     );
     if (manifestState !== "ready") {
       return {
@@ -94,7 +93,7 @@ export function PixelMarketplace() {
       };
     }
     return evaluated;
-  }, [claimedPixels, manifestState, ownershipIndex, selection]);
+  }, [manifestState, ownershipIndex, selection]);
 
   function handleSelectionChange(next: PixelRect | null) {
     setSelection(next);
@@ -255,7 +254,6 @@ export function PixelMarketplace() {
         <Inspector
           selection={selection}
           evaluation={evaluation}
-          soldPixels={claimedPixels}
           color={color}
           destinationUrl={destinationUrl}
           checkoutPending={checkoutPending}

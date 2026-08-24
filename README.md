@@ -69,13 +69,10 @@ not set. Never point that variable at production.
 
 ## Payment and ownership lifecycle
 
-Standard price is $0.25 per pixel. The first 10,000 owned pixels (sum of owned `width * height`)
-are $0.20 per pixel. The unit price is snapshotted server-side when a reservation is created, not
-when the browser previews it.
-
-Checkout requires area ≥ 100 and width ≥ 4 and height ≥ 4. Arbitrary rectangles are allowed; a
-10×10 starter is the suggested first purchase. Selections are capped at 10,000 pixels to limit
-griefing. Stripe's $0.50 charge floor is not a product minimum and is not shown in the UI.
+The fixed price is $0.25 per logical pixel. Checkout requires at least two pixels, for a $0.50
+minimum compatible with Stripe's typical minimum charge. Any in-bounds rectangle with area ≥ 2 is
+allowed; a 10×10 starter is available only as a convenience. The unit price and total are
+snapshotted server-side when the reservation is created, never trusted from the browser.
 
 Creating Checkout atomically inserts a short reservation with price and product snapshots. A
 PostgreSQL GiST exclusion constraint over generated half-open X/Y ranges prevents concurrent
