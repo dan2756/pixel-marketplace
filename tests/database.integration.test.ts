@@ -73,9 +73,10 @@ describeWithDatabase("PostgreSQL inventory guarantees", () => {
     await expect(insertClaim(pool, 0, 0, 10, 10)).resolves.toBeTypeOf("string");
   });
 
-  it("accepts two pixels and rejects a one-pixel claim", async () => {
-    await expect(insertClaim(pool, 0, 0, 2, 1)).resolves.toBeTypeOf("string");
-    await expect(insertClaim(pool, 100, 100, 1, 1)).rejects.toMatchObject({ code: "23514" });
+  it("rejects selections below the 100-pixel and 4×4 commercial minimum", async () => {
+    await expect(insertClaim(pool, 0, 0, 2, 1)).rejects.toMatchObject({ code: "23514" });
+    await expect(insertClaim(pool, 0, 0, 4, 4)).rejects.toMatchObject({ code: "23514" });
+    await expect(insertClaim(pool, 0, 0, 50, 2)).rejects.toMatchObject({ code: "23514" });
   });
 
   it("durably deduplicates Stripe event identifiers", async () => {

@@ -47,12 +47,12 @@ CREATE TABLE IF NOT EXISTS claims (
     width > 0 AND height > 0 AND x + width <= 1280 AND y + height <= 720
   ),
   CONSTRAINT claims_selection_size CHECK (
-    width >= 1 AND height >= 1
-    AND width * height >= 2
-    AND width * height <= 921600
+    width >= 4 AND height >= 4
+    AND width * height >= 100
+    AND width * height <= 10000
   ),
   CONSTRAINT claims_unit_price CHECK (
-    unit_price_cents = 25
+    unit_price_cents IN (20, 25)
   ),
   CONSTRAINT claims_price_snapshot CHECK (
     unit_price_cents > 0 AND total_cents = width * height * unit_price_cents
@@ -61,14 +61,14 @@ CREATE TABLE IF NOT EXISTS claims (
 
 ALTER TABLE claims DROP CONSTRAINT IF EXISTS claims_selection_size;
 ALTER TABLE claims ADD CONSTRAINT claims_selection_size CHECK (
-  width >= 1 AND height >= 1
-  AND width * height >= 2
-  AND width * height <= 921600
+  width >= 4 AND height >= 4
+  AND width * height >= 100
+  AND width * height <= 10000
 );
 
 ALTER TABLE claims DROP CONSTRAINT IF EXISTS claims_unit_price;
 ALTER TABLE claims ADD CONSTRAINT claims_unit_price CHECK (
-  unit_price_cents = 25
+  unit_price_cents IN (20, 25)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS claims_idempotency_key_uq ON claims (idempotency_key);
