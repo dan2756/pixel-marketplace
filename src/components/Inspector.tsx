@@ -3,7 +3,18 @@
 import { AlertTriangle, LockKeyhole, MousePointer2, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
-import { BOARD_HEIGHT, BOARD_WIDTH, MIN_SELECTION_PIXELS } from "@/lib/constants";
+import {
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  FOUNDING_PIXEL_CAP,
+  FOUNDING_PRICE_CENTS,
+  MIN_SELECTION_HEIGHT,
+  MIN_SELECTION_PIXELS,
+  MIN_SELECTION_WIDTH,
+  PRODUCT_TAGLINE,
+  SUGGESTED_STARTER_SIZE,
+  UNIT_PRICE_CENTS,
+} from "@/lib/constants";
 import type { PixelRect, SelectionEvaluation } from "@/lib/types";
 import { formatUsd, normalizeColor, normalizeDestinationUrl } from "@/lib/validation";
 
@@ -12,11 +23,13 @@ import { TurnstileWidget } from "./TurnstileWidget";
 type InspectorProps = {
   selection: PixelRect | null;
   evaluation: SelectionEvaluation | null;
+  soldPixels: number;
   color: string;
   destinationUrl: string;
   checkoutPending: boolean;
   checkoutError: string | null;
   onSelectionChange: (selection: PixelRect | null) => void;
+  onPlaceStarter: () => void;
   onColorChange: (color: string) => void;
   onDestinationUrlChange: (url: string) => void;
   onCheckout: (turnstileToken: string) => Promise<void>;
@@ -25,11 +38,13 @@ type InspectorProps = {
 export function Inspector({
   selection,
   evaluation,
+  soldPixels,
   color,
   destinationUrl,
   checkoutPending,
   checkoutError,
   onSelectionChange,
+  onPlaceStarter,
   onColorChange,
   onDestinationUrlChange,
   onCheckout,
@@ -47,6 +62,10 @@ export function Inspector({
     !colorError &&
     destinationUrl.trim().length > 0 &&
     (!turnstileRequired || Boolean(turnstileToken));
+  const foundingRemaining = Math.max(0, FOUNDING_PIXEL_CAP - soldPixels);
+  const unitPriceCents =
+    evaluation?.unitPriceCents ??
+    (soldPixels < FOUNDING_PIXEL_CAP ? FOUNDING_PRICE_CENTS : UNIT_PRICE_CENTS);
 
   const validationText = useMemo(() => {
     if (!selection || !evaluation) return null;
@@ -63,11 +82,21 @@ export function Inspector({
         <div className="empty-inspector">
           <div>
             <MousePointer2 size={24} aria-hidden="true" />
-            <h2>Select open pixels</h2>
+            <h2>Claim a rectangle</h2>
+            <p>{PRODUCT_TAGLINE}</p>
             <p>
-              Choose Select, then drag a rectangle. Every logical pixel is $0.25; the minimum is{" "}
-              {MIN_SELECTION_PIXELS}.
+              This is a public mosaic — a finite internet object, not an ad slot and not an NFT.
+              Minimum {MIN_SELECTION_WIDTH}×{MIN_SELECTION_HEIGHT} and {MIN_SELECTION_PIXELS}{" "}
+              pixels. Suggested starter: {SUGGESTED_STARTER_SIZE}×{SUGGESTED_STARTER_SIZE}.
             </p>
+            <p>
+              {foundingRemaining > 0
+                ? `Founding rate ${formatUsd(FOUNDING_PRICE_CENTS)}/px for the first ${FOUNDING_PIXEL_CAP.toLocaleString()} pixels sold.`
+                : `Standard rate ${formatUsd(UNIT_PRICE_CENTS)}/px.`}
+            </p>
+            <button type="button" className="secondary-button" onClick={onPlaceStarter}>
+              Place a {SUGGESTED_STARTER_SIZE}×{SUGGESTED_STARTER_SIZE} starter
+            </button>
           </div>
         </div>
       </aside>
@@ -121,7 +150,7 @@ export function Inspector({
       }
       return;
     }
-    if (!evaluation.valid || (turnstileRequired && !turnstileToken)) return;
+    if (!evaluation?.valid || (turnstileRequired && !turnstileToken)) return;
     try {
       await onCheckout(turnstileToken);
     } finally {
@@ -193,7 +222,7 @@ export function Inspector({
               <input
                 className="coordinate-input"
                 type="number"
-                min={1}
+                min={MIN_SELECTION_WIDTH}
                 max={BOARD_WIDTH}
                 value={selection.width}
                 onChange={(event) => updateCoordinate("width", event.target.value)}
@@ -204,7 +233,7 @@ export function Inspector({
               <input
                 className="coordinate-input"
                 type="number"
-                min={1}
+                min={MIN_SELECTION_HEIGHT}
                 max={BOARD_HEIGHT}
                 value={selection.height}
                 onChange={(event) => updateCoordinate("height", event.target.value)}
@@ -268,9 +297,11 @@ export function Inspector({
         <div className="checkout-area">
           <div className="total-row">
             <span>
-              {evaluation.pixelCount.toLocaleString()} px × $0.25
+              {evaluation.pixelCount.toLocaleString()} px × {formatUsd(unitPriceCents)}
               <br />
-              One-time purchase
+              {unitPriceCents === FOUNDING_PRICE_CENTS
+                ? "Founding rate · one-time"
+                : "One-time purchase"}
             </span>
             <strong>{formatUsd(evaluation.priceCents)}</strong>
           </div>
@@ -287,8 +318,8 @@ export function Inspector({
             {checkoutPending ? "Reserving…" : "Continue to secure checkout"}
           </button>
           <div className="checkout-note">
-            Availability and price are rechecked on the server. Ownership is granted only after a
-            verified Stripe webhook confirms payment.
+            Price is snapshotted on the server when you reserve. Pay with Stripe or Link. Ownership
+            is granted only after a verified Stripe webhook confirms payment.
           </div>
         </div>
       </div>

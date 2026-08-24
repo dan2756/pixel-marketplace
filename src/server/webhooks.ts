@@ -100,12 +100,7 @@ export async function reconcileCheckouts(): Promise<{
 
       const session = await stripe.checkout.sessions.retrieve(candidate.checkoutSessionId);
       const changed = await db.transaction(async (transaction) =>
-        applySessionTransition(
-          transaction,
-          session,
-          reconciliationEventType(session),
-          new Date(),
-        ),
+        applySessionTransition(transaction, session, reconciliationEventType(session), new Date()),
       );
       if (changed) updated += 1;
     } catch {

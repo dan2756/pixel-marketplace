@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { PRODUCT_NAME } from "@/lib/constants";
+import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/constants";
 
 import "./globals.css";
 
@@ -19,11 +19,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${PRODUCT_NAME} — Own a piece of the canvas`,
+    default: PRODUCT_TAGLINE,
     template: `%s · ${PRODUCT_NAME}`,
   },
   description:
-    "Select a region on a 1280 × 720 canvas, choose its color, and give it a permanent destination.",
+    "A public mosaic on one 720p frame. 921,600 pixels, sold once. Not ads. Not an NFT. Pay with Stripe or Link.",
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
 };
 

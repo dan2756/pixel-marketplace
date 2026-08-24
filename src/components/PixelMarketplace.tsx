@@ -3,14 +3,15 @@
 import { CircleHelp, Copy, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { DEFAULT_COLOR } from "@/lib/constants";
+import { BOARD_HEIGHT, BOARD_WIDTH, DEFAULT_COLOR } from "@/lib/constants";
 import type { BoardMode } from "@/lib/interaction";
 import { buildOwnershipIndex, selectionOverlapsOwnership } from "@/lib/ownership";
-import { evaluateSelection } from "@/lib/rect";
+import { centeredStarterRect, evaluateSelection } from "@/lib/rect";
 import type { OwnershipManifest, PixelRect } from "@/lib/types";
 import { normalizeColor, normalizeDestinationUrl } from "@/lib/validation";
 
 import { BoardCanvas } from "./BoardCanvas";
+import { BrandMark } from "./BrandMark";
 import { Inspector } from "./Inspector";
 
 const emptyManifest: OwnershipManifest = {
@@ -34,7 +35,6 @@ export function PixelMarketplace() {
   const idempotencyRef = useRef<{ key: string; fingerprint: string } | null>(null);
 
   const loadManifest = useCallback(async () => {
-    setManifestState((state) => (state === "ready" ? state : "loading"));
     try {
       const response = await fetch("/api/manifest", {
         headers: { Accept: "application/json" },
@@ -50,18 +50,25 @@ export function PixelMarketplace() {
   }, []);
 
   useEffect(() => {
-    void loadManifest();
+    const initial = window.setTimeout(() => void loadManifest(), 0);
     const timer = window.setInterval(() => void loadManifest(), 60_000);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(timer);
+    };
   }, [loadManifest]);
 
   useEffect(() => {
-    setShowCoachmark(localStorage.getItem("pixel-marketplace-coachmark") !== "dismissed");
-    setFocusRegionId(new URLSearchParams(window.location.search).get("region"));
+    const frame = window.requestAnimationFrame(() => {
+      setShowCoachmark(localStorage.getItem("pixel-marketplace-coachmark") !== "dismissed");
+      setFocusRegionId(new URLSearchParams(window.location.search).get("region"));
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const ownershipIndex = useMemo(
-    () => buildOwnershipIndex(manifest.regions),
+  const ownershipIndex = useMemo(() => buildOwnershipIndex(manifest.regions), [manifest.regions]);
+  const claimedPixels = useMemo(
+    () => manifest.regions.reduce((total, region) => total + region.width * region.height, 0),
     [manifest.regions],
   );
 
@@ -73,10 +80,11 @@ export function PixelMarketplace() {
         selection.height > 0 &&
         selection.x >= 0 &&
         selection.y >= 0 &&
-        selection.x + selection.width <= 1280 &&
-        selection.y + selection.height <= 720
+        selection.x + selection.width <= BOARD_WIDTH &&
+        selection.y + selection.height <= BOARD_HEIGHT
         ? selectionOverlapsOwnership(selection, ownershipIndex)
         : false,
+      claimedPixels,
     );
     if (manifestState !== "ready") {
       return {
@@ -86,7 +94,7 @@ export function PixelMarketplace() {
       };
     }
     return evaluated;
-  }, [manifestState, ownershipIndex, selection]);
+  }, [claimedPixels, manifestState, ownershipIndex, selection]);
 
   function handleSelectionChange(next: PixelRect | null) {
     setSelection(next);
@@ -153,22 +161,15 @@ export function PixelMarketplace() {
     setShowCoachmark(false);
   }
 
-  const claimedPixels = manifest.regions.reduce(
-    (total, region) => total + region.width * region.height,
-    0,
-  );
+  function placeStarter() {
+    handleSelectionChange(centeredStarterRect());
+    setShowCoachmark(false);
+  }
 
   return (
     <main className="app-shell">
       <header className="topbar">
-        <div className="brand" aria-label="One Million Pixels">
-          <span className="brand-mark" aria-hidden="true">
-            {Array.from({ length: 9 }, (_, index) => (
-              <span key={index} />
-            ))}
-          </span>
-          <span>One Million Pixels</span>
-        </div>
+        <BrandMark />
         <div className="topbar-meta" aria-live="polite">
           <span className="status-dot" />
           {manifestState === "ready"
@@ -238,10 +239,11 @@ export function PixelMarketplace() {
 
           {showCoachmark ? (
             <aside className="coachmark" aria-labelledby="coachmark-title">
-              <h2 id="coachmark-title">Explore, then select</h2>
+              <h2 id="coachmark-title">One 720p frame. 921,600 pixels. Sold once.</h2>
               <p>
-                Drag to pan and scroll or pinch to zoom. Switch to Select to draw a snapped
-                rectangle. Owned regions open only on a deliberate click.
+                A public mosaic, not an ad network and not an NFT. Drag to pan, then Select any
+                rectangle. A 10×10 starter is the recommended first purchase. Pay with Stripe or
+                Link.
               </p>
               <button type="button" onClick={dismissCoachmark}>
                 Got it
@@ -253,11 +255,13 @@ export function PixelMarketplace() {
         <Inspector
           selection={selection}
           evaluation={evaluation}
+          soldPixels={claimedPixels}
           color={color}
           destinationUrl={destinationUrl}
           checkoutPending={checkoutPending}
           checkoutError={checkoutError}
           onSelectionChange={handleSelectionChange}
+          onPlaceStarter={placeStarter}
           onColorChange={setColor}
           onDestinationUrlChange={setDestinationUrl}
           onCheckout={startCheckout}

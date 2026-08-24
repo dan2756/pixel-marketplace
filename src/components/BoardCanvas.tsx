@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Focus,
-  Hand,
-  LocateFixed,
-  Minus,
-  MousePointer2,
-  Plus,
-  ScanLine,
-} from "lucide-react";
+import { Focus, Hand, LocateFixed, Minus, MousePointer2, Plus, ScanLine } from "lucide-react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import {
@@ -25,7 +17,7 @@ import {
   type InteractionAction,
 } from "@/lib/interaction";
 import { ownedRegionAt } from "@/lib/ownership";
-import { clampCell } from "@/lib/rect";
+import { clampCell, suggestedStarterRect } from "@/lib/rect";
 import {
   centerOn,
   fitBoard,
@@ -219,7 +211,7 @@ export function BoardCanvas({
       canvas.height = targetHeight;
     }
 
-    let frame = requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       drawBoard({
         canvas,
         dpr,
@@ -373,9 +365,7 @@ export function BoardCanvas({
           setAnnouncement("Opened the owned region destination in a new tab.");
         }
       } else if (before.phase === "selecting" && before.selection) {
-        setAnnouncement(
-          `Selected ${before.selection.width} by ${before.selection.height} pixels.`,
-        );
+        setAnnouncement(`Selected ${before.selection.width} by ${before.selection.height} pixels.`);
       }
     }
   }
@@ -448,7 +438,10 @@ export function BoardCanvas({
         keyboardAnchorRef.current = null;
       }
 
-      const screenPosition = worldToScreen({ x: next.x + 0.5, y: next.y + 0.5 }, transformRef.current);
+      const screenPosition = worldToScreen(
+        { x: next.x + 0.5, y: next.y + 0.5 },
+        transformRef.current,
+      );
       const margin = 48;
       if (
         screenPosition.x < margin ||
@@ -471,9 +464,9 @@ export function BoardCanvas({
         setAnnouncement("Opened the owned region destination in a new tab.");
       } else {
         onModeChange("select");
-        onSelectionChange({ x: keyboardCell.x, y: keyboardCell.y, width: 1, height: 1 });
+        onSelectionChange(suggestedStarterRect(keyboardCell));
         keyboardAnchorRef.current = keyboardCell;
-        setAnnouncement("Selection started. Hold Shift and use arrow keys to resize.");
+        setAnnouncement("Selection started at 10 by 10. Hold Shift and use arrow keys to resize.");
       }
     }
   }
@@ -521,9 +514,9 @@ export function BoardCanvas({
         without dragging.
       </canvas>
       <p id="canvas-instructions" className="sr-only">
-        Use arrow keys to move one cell. Hold Shift with an arrow key to select. Press Enter to
-        open an owned region or start a selection. Press F to fit, plus or minus to zoom, and
-        Escape to clear.
+        Use arrow keys to move one cell. Hold Shift with an arrow key to select. Press Enter to open
+        an owned region or start a selection. Press F to fit, plus or minus to zoom, and Escape to
+        clear.
       </p>
       <div className="sr-only" aria-live="polite">
         {announcement}

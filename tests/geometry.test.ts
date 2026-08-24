@@ -1,8 +1,15 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { BOARD_HEIGHT, BOARD_WIDTH } from "@/lib/constants";
-import { rectArea, rectFromCells, rectsOverlap, rectWithinBoard } from "@/lib/rect";
+import { BOARD_HEIGHT, BOARD_WIDTH, SUGGESTED_STARTER_SIZE } from "@/lib/constants";
+import {
+  evaluateSelection,
+  rectArea,
+  rectFromCells,
+  rectsOverlap,
+  rectWithinBoard,
+  suggestedStarterRect,
+} from "@/lib/rect";
 import { screenToWorld, worldToScreen, zoomAt } from "@/lib/transform";
 
 describe("rectangle geometry", () => {
@@ -17,10 +24,7 @@ describe("rectangle geometry", () => {
 
   it("treats half-open adjacent rectangles as non-overlapping", () => {
     expect(
-      rectsOverlap(
-        { x: 0, y: 0, width: 4, height: 4 },
-        { x: 4, y: 0, width: 3, height: 4 },
-      ),
+      rectsOverlap({ x: 0, y: 0, width: 4, height: 4 }, { x: 4, y: 0, width: 3, height: 4 }),
     ).toBe(false);
   });
 
@@ -39,6 +43,17 @@ describe("rectangle geometry", () => {
         expect(rectWithinBoard(rect)).toBe(true);
       }),
     );
+  });
+
+  it("places a 10×10 starter on the board", () => {
+    const starter = suggestedStarterRect({ x: 12, y: 24 });
+    expect(starter).toEqual({
+      x: 12,
+      y: 24,
+      width: SUGGESTED_STARTER_SIZE,
+      height: SUGGESTED_STARTER_SIZE,
+    });
+    expect(evaluateSelection(starter, false).valid).toBe(true);
   });
 });
 

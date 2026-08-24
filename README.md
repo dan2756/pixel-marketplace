@@ -1,8 +1,17 @@
-# One Million Pixels
+# 720p Frame
+
+One 720p frame. 921,600 pixels. Sold once.
 
 A production-oriented MVP for selling rectangular regions of a fixed 1280 × 720 logical-pixel
 canvas. The UI renders 921,600 cells with Canvas 2D (never DOM nodes), while PostgreSQL and
 Stripe webhooks remain authoritative for inventory and ownership.
+
+Million-pixel branding was considered and rejected. 1,000,000 pixels is not a clean 16:9 integer
+(1333.33×750); the closest 16:9 options make the UI worse. This product keeps an honest 720p
+frame rather than stretching the canvas to force a round million.
+
+This is a public mosaic — a finite internet object — not an ad network and not an NFT or crypto
+marketplace. Checkout is Stripe and Link only.
 
 ## Stack
 
@@ -22,7 +31,7 @@ Stripe webhooks remain authoritative for inventory and ownership.
    npm run db:migrate
    ```
 
-3. Optionally add sample owned regions:
+3. Optionally add sample owned regions (refuses to run against a production Vercel database):
 
    ```bash
    npm run db:seed
@@ -60,10 +69,17 @@ not set. Never point that variable at production.
 
 ## Payment and ownership lifecycle
 
-Each logical pixel costs $0.25. Checkout requires at least two pixels ($0.50). Creating Checkout
-atomically inserts a short reservation with price and product snapshots. A PostgreSQL GiST
-exclusion constraint over generated half-open X/Y ranges prevents concurrent active rectangles
-from overlapping.
+Standard price is $0.25 per pixel. The first 10,000 owned pixels (sum of owned `width * height`)
+are $0.20 per pixel. The unit price is snapshotted server-side when a reservation is created, not
+when the browser previews it.
+
+Checkout requires area ≥ 100 and width ≥ 4 and height ≥ 4. Arbitrary rectangles are allowed; a
+10×10 starter is the suggested first purchase. Selections are capped at 10,000 pixels to limit
+griefing. Stripe's $0.50 charge floor is not a product minimum and is not shown in the UI.
+
+Creating Checkout atomically inserts a short reservation with price and product snapshots. A
+PostgreSQL GiST exclusion constraint over generated half-open X/Y ranges prevents concurrent
+active rectangles from overlapping.
 
 Stripe Checkout is hosted by Stripe and omits `payment_method_types`, allowing dynamic payment
 methods such as Link when eligible. A browser return never grants ownership. Only a verified,

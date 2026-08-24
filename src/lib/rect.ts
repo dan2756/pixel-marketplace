@@ -1,4 +1,13 @@
-import { BOARD_HEIGHT, BOARD_WIDTH, MIN_SELECTION_PIXELS, UNIT_PRICE_CENTS } from "./constants";
+import {
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  SUGGESTED_STARTER_SIZE,
+  MAX_SELECTION_PIXELS,
+  MIN_SELECTION_HEIGHT,
+  MIN_SELECTION_PIXELS,
+  MIN_SELECTION_WIDTH,
+} from "./constants";
+import { unitPriceCentsForSoldPixels } from "./pricing";
 import type { PixelRect, Point, SelectionEvaluation } from "./types";
 
 export function rectFromCells(start: Point, end: Point): PixelRect {
@@ -18,12 +27,7 @@ export function rectArea(rect: PixelRect): number {
 }
 
 export function rectsOverlap(a: PixelRect, b: PixelRect): boolean {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 export function rectContainsPoint(rect: PixelRect, point: Point): boolean {
@@ -57,25 +61,59 @@ export function clampCell(point: Point): Point {
   };
 }
 
+export function suggestedStarterRect(anchor: Point = { x: 0, y: 0 }): PixelRect {
+  const width = Math.min(SUGGESTED_STARTER_SIZE, BOARD_WIDTH);
+  const height = Math.min(SUGGESTED_STARTER_SIZE, BOARD_HEIGHT);
+  return {
+    x: Math.max(0, Math.min(BOARD_WIDTH - width, Math.floor(anchor.x))),
+    y: Math.max(0, Math.min(BOARD_HEIGHT - height, Math.floor(anchor.y))),
+    width,
+    height,
+  };
+}
+
+export function centeredStarterRect(): PixelRect {
+  return suggestedStarterRect({
+    x: Math.floor((BOARD_WIDTH - SUGGESTED_STARTER_SIZE) / 2),
+    y: Math.floor((BOARD_HEIGHT - SUGGESTED_STARTER_SIZE) / 2),
+  });
+}
+
+export function selectionConstraintReason(rect: PixelRect): string | undefined {
+  if (!rectWithinBoard(rect)) {
+    return "Selection must stay inside the canvas.";
+  }
+  if (rect.width < MIN_SELECTION_WIDTH || rect.height < MIN_SELECTION_HEIGHT) {
+    return `Width and height must each be at least ${MIN_SELECTION_WIDTH} pixels.`;
+  }
+  const area = rectArea(rect);
+  if (area < MIN_SELECTION_PIXELS) {
+    return `Select at least ${MIN_SELECTION_PIXELS} pixels. A ${SUGGESTED_STARTER_SIZE} × ${SUGGESTED_STARTER_SIZE} starter works.`;
+  }
+  if (area > MAX_SELECTION_PIXELS) {
+    return `Selections are limited to ${MAX_SELECTION_PIXELS.toLocaleString()} pixels.`;
+  }
+  return undefined;
+}
+
 export function evaluateSelection(
   rect: PixelRect,
   hasOverlap: boolean,
+  soldPixels = 0,
 ): SelectionEvaluation {
   const pixelCount = rectArea(rect);
-  let reason: string | undefined;
+  const unitPriceCents = unitPriceCentsForSoldPixels(Math.max(0, soldPixels));
+  let reason = selectionConstraintReason(rect);
 
-  if (!rectWithinBoard(rect)) {
-    reason = "Selection must stay inside the canvas.";
-  } else if (pixelCount < MIN_SELECTION_PIXELS) {
-    reason = `Select at least ${MIN_SELECTION_PIXELS} pixels.`;
-  } else if (hasOverlap) {
+  if (!reason && hasOverlap) {
     reason = "This selection overlaps an owned region.";
   }
 
   return {
     rect,
     pixelCount,
-    priceCents: pixelCount * UNIT_PRICE_CENTS,
+    unitPriceCents,
+    priceCents: pixelCount > 0 ? pixelCount * unitPriceCents : 0,
     valid: reason === undefined,
     reason,
   };

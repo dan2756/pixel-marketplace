@@ -70,7 +70,13 @@ describeWithDatabase("PostgreSQL inventory guarantees", () => {
     const firstId = await insertClaim(pool, 0, 0, 10, 10);
     await expect(insertClaim(pool, 10, 0, 10, 10)).resolves.toBeTypeOf("string");
     await pool.query("UPDATE claims SET status = 'expired' WHERE id = $1", [firstId]);
-    await expect(insertClaim(pool, 2, 2, 4, 4)).resolves.toBeTypeOf("string");
+    await expect(insertClaim(pool, 0, 0, 10, 10)).resolves.toBeTypeOf("string");
+  });
+
+  it("rejects selections below the 100-pixel and 4×4 commercial minimum", async () => {
+    await expect(insertClaim(pool, 0, 0, 2, 1)).rejects.toMatchObject({ code: "23514" });
+    await expect(insertClaim(pool, 0, 0, 4, 4)).rejects.toMatchObject({ code: "23514" });
+    await expect(insertClaim(pool, 0, 0, 50, 2)).rejects.toMatchObject({ code: "23514" });
   });
 
   it("durably deduplicates Stripe event identifiers", async () => {

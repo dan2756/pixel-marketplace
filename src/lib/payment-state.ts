@@ -3,7 +3,7 @@ import type { ClaimStatus } from "./types";
 export type PaymentTransitionInput = {
   eventType: string;
   checkoutStatus: "open" | "complete" | "expired" | null;
-  paymentStatus: "paid" | "unpaid" | "no_payment_required";
+  paymentStatus: string;
   currentStatus: ClaimStatus;
 };
 

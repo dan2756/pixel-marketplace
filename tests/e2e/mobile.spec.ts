@@ -38,9 +38,9 @@ test("mobile mode and non-drag coordinate selection expose a bottom sheet", asyn
 
   await page.getByLabel("X", { exact: true }).fill("12");
   await page.getByLabel("Y", { exact: true }).fill("24");
-  await page.getByLabel("W", { exact: true }).fill("3");
-  await page.getByLabel("H", { exact: true }).fill("2");
-  await expect(page.getByText("6", { exact: true }).first()).toBeVisible();
+  await page.getByLabel("W", { exact: true }).fill("12");
+  await page.getByLabel("H", { exact: true }).fill("10");
+  await expect(page.getByText("120", { exact: true }).first()).toBeVisible();
 });
 
 test("mobile minimap can collapse without hiding canvas controls", async ({ page }) => {

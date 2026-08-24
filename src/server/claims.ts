@@ -5,9 +5,9 @@ import { and, eq, inArray, lt, sql } from "drizzle-orm";
 import type Stripe from "stripe";
 import type { z } from "zod";
 
-import { RESERVATION_LEASE_MINUTES, UNIT_PRICE_CENTS } from "@/lib/constants";
+import { RESERVATION_LEASE_MINUTES } from "@/lib/constants";
+import { snapshotReservationPrice } from "@/lib/pricing";
 import type { OwnershipManifest, ReservationStatus } from "@/lib/types";
-import { calculatePriceCents } from "@/lib/validation";
 import type { checkoutRequestSchema } from "@/lib/validation";
 
 import { getDatabase } from "./db/client";
@@ -25,7 +25,6 @@ export type CheckoutResult = {
 
 export async function createCheckout(input: CheckoutInput): Promise<CheckoutResult> {
   const db = getDatabase();
-  const totalCents = calculatePriceCents(input.rect.width, input.rect.height);
   let claim: Claim;
 
   try {
@@ -50,7 +49,7 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
       });
 
       if (existing) {
-        if (!sameCheckoutRequest(existing, input, totalCents)) {
+        if (!sameCheckoutRequest(existing, input)) {
           throw new CheckoutConflictError(
             "This idempotency key was already used for a different selection.",
           );
@@ -60,6 +59,18 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
         }
         return existing;
       }
+
+      const [owned] = await transaction
+        .select({
+          soldPixels: sql<number>`coalesce(sum((${claims.width})::bigint * (${claims.height})::bigint), 0)`,
+        })
+        .from(claims)
+        .where(eq(claims.status, "owned"));
+      const price = snapshotReservationPrice(
+        input.rect.width,
+        input.rect.height,
+        Number(owned?.soldPixels ?? 0),
+      );
 
       const [created] = await transaction
         .insert(claims)
@@ -71,8 +82,8 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
           height: input.rect.height,
           color: input.color,
           destinationUrl: input.destinationUrl,
-          unitPriceCents: UNIT_PRICE_CENTS,
-          totalCents,
+          unitPriceCents: price.unitPriceCents,
+          totalCents: price.totalCents,
           idempotencyKey: input.idempotencyKey,
           expiresAt: sql`transaction_timestamp() + (${RESERVATION_LEASE_MINUTES} * interval '1 minute')`,
         })
@@ -88,7 +99,7 @@ export async function createCheckout(input: CheckoutInput): Promise<CheckoutResu
       const existing = await db.query.claims.findFirst({
         where: eq(claims.idempotencyKey, input.idempotencyKey),
       });
-      if (existing && sameCheckoutRequest(existing, input, totalCents)) {
+      if (existing && sameCheckoutRequest(existing, input)) {
         claim = existing;
       } else {
         throw new CheckoutConflictError("Checkout request could not be safely resumed.");
@@ -248,15 +259,14 @@ export async function getPublicRegion(id: string) {
   });
 }
 
-function sameCheckoutRequest(claim: Claim, input: CheckoutInput, totalCents: number): boolean {
+function sameCheckoutRequest(claim: Claim, input: CheckoutInput): boolean {
   return (
     claim.x === input.rect.x &&
     claim.y === input.rect.y &&
     claim.width === input.rect.width &&
     claim.height === input.rect.height &&
     claim.color === input.color &&
-    claim.destinationUrl === input.destinationUrl &&
-    claim.totalCents === totalCents
+    claim.destinationUrl === input.destinationUrl
   );
 }
 

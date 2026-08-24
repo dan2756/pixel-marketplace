@@ -56,7 +56,8 @@ export function interactionReducer(
         origin: action.screen,
         last: action.screen,
         selectionOrigin: phase === "selecting" ? action.cell : null,
-        selection: phase === "selecting" ? rectFromCells(action.cell, action.cell) : state.selection,
+        selection:
+          phase === "selecting" ? rectFromCells(action.cell, action.cell) : state.selection,
         moved: false,
       };
     }

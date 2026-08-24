@@ -1,11 +1,7 @@
 import { ZodError } from "zod";
 
 import { checkoutRequestSchema } from "@/lib/validation";
-import {
-  CheckoutConflictError,
-  createCheckout,
-  InventoryConflictError,
-} from "@/server/claims";
+import { CheckoutConflictError, createCheckout, InventoryConflictError } from "@/server/claims";
 import {
   assertTrustedOrigin,
   enforceRateLimit,

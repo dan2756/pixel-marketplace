@@ -16,7 +16,16 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { BOARD_HEIGHT, BOARD_WIDTH, UNIT_PRICE_CENTS } from "@/lib/constants";
+import {
+  BOARD_HEIGHT,
+  BOARD_WIDTH,
+  FOUNDING_PRICE_CENTS,
+  MAX_SELECTION_PIXELS,
+  MIN_SELECTION_HEIGHT,
+  MIN_SELECTION_PIXELS,
+  MIN_SELECTION_WIDTH,
+  UNIT_PRICE_CENTS,
+} from "@/lib/constants";
 
 export const claimStatus = pgEnum("claim_status", [
   "reserved",
@@ -68,6 +77,14 @@ export const claims = pgTable(
     check(
       "claims_dimensions",
       sql`${table.width} > 0 and ${table.height} > 0 and ${table.x} + ${table.width} <= ${BOARD_WIDTH} and ${table.y} + ${table.height} <= ${BOARD_HEIGHT}`,
+    ),
+    check(
+      "claims_selection_size",
+      sql`${table.width} >= ${MIN_SELECTION_WIDTH} and ${table.height} >= ${MIN_SELECTION_HEIGHT} and ${table.width} * ${table.height} >= ${MIN_SELECTION_PIXELS} and ${table.width} * ${table.height} <= ${MAX_SELECTION_PIXELS}`,
+    ),
+    check(
+      "claims_unit_price",
+      sql`${table.unitPriceCents} in (${FOUNDING_PRICE_CENTS}, ${UNIT_PRICE_CENTS})`,
     ),
     check(
       "claims_price_snapshot",

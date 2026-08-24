@@ -81,11 +81,7 @@ describe("ownership raster", () => {
   });
 
   it("detects selection overlap using the raster", () => {
-    expect(
-      selectionOverlapsOwnership({ x: 19, y: 29, width: 2, height: 2 }, index),
-    ).toBe(true);
-    expect(
-      selectionOverlapsOwnership({ x: 25, y: 30, width: 2, height: 2 }, index),
-    ).toBe(false);
+    expect(selectionOverlapsOwnership({ x: 19, y: 29, width: 2, height: 2 }, index)).toBe(true);
+    expect(selectionOverlapsOwnership({ x: 25, y: 30, width: 2, height: 2 }, index)).toBe(false);
   });
 });

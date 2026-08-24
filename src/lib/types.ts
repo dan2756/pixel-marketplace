@@ -17,12 +17,7 @@ export type ViewTransform = {
 };
 
 export type ClaimStatus =
-  | "reserved"
-  | "payment_pending"
-  | "owned"
-  | "expired"
-  | "cancelled"
-  | "failed";
+  "reserved" | "payment_pending" | "owned" | "expired" | "cancelled" | "failed";
 
 export type OwnedRegion = PixelRect & {
   id: string;
@@ -40,6 +35,7 @@ export type OwnershipManifest = {
 export type SelectionEvaluation = {
   rect: PixelRect;
   pixelCount: number;
+  unitPriceCents: number;
   priceCents: number;
   valid: boolean;
   reason?: string;

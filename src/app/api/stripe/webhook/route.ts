@@ -20,7 +20,10 @@ export async function POST(request: Request) {
 
   try {
     const result = await processStripeEvent(event, rawBody);
-    return Response.json({ received: true, ...result }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json(
+      { received: true, ...result },
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     console.error("Stripe webhook processing failed", {
       eventId: event.id,

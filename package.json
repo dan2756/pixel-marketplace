@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "A server-authoritative marketplace for a 1280×720 pixel canvas.",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

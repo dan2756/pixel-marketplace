@@ -5,7 +5,7 @@ import { getReservationStatus } from "@/server/claims";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(_request: Request, context: RouteContext<"/api/status/[id]">) {
+export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   if (!z.uuid().safeParse(id).success) {
     return Response.json({ error: "Invalid reservation ID." }, { status: 400 });

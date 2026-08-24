@@ -35,10 +35,7 @@ describe("webhook-authoritative payment transitions", () => {
   });
 
   it("does not let late failure or expiry overwrite ownership", () => {
-    for (const eventType of [
-      "checkout.session.async_payment_failed",
-      "checkout.session.expired",
-    ]) {
+    for (const eventType of ["checkout.session.async_payment_failed", "checkout.session.expired"]) {
       expect(
         deriveClaimTransition({
           eventType,

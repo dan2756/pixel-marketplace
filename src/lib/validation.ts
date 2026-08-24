@@ -1,11 +1,7 @@
 import { z } from "zod";
 
-import {
-  BOARD_HEIGHT,
-  BOARD_WIDTH,
-  MIN_SELECTION_PIXELS,
-  UNIT_PRICE_CENTS,
-} from "./constants";
+import { BOARD_HEIGHT, BOARD_WIDTH } from "./constants";
+import { selectionConstraintReason } from "./rect";
 
 const hexColorPattern = /^#[0-9A-F]{6}$/;
 
@@ -56,16 +52,11 @@ export const pixelRectSchema = z
     height: integer.min(1).max(BOARD_HEIGHT),
   })
   .superRefine((value, context) => {
-    if (value.x + value.width > BOARD_WIDTH || value.y + value.height > BOARD_HEIGHT) {
+    const reason = selectionConstraintReason(value);
+    if (reason) {
       context.addIssue({
         code: "custom",
-        message: "Selection must stay inside the canvas.",
-      });
-    }
-    if (value.width * value.height < MIN_SELECTION_PIXELS) {
-      context.addIssue({
-        code: "custom",
-        message: `Select at least ${MIN_SELECTION_PIXELS} pixels.`,
+        message: reason,
       });
     }
   });
@@ -98,12 +89,7 @@ export const checkoutRequestSchema = z.object({
   turnstileToken: z.string().max(4096).optional().default(""),
 });
 
-export function calculatePriceCents(width: number, height: number): number {
-  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) {
-    throw new Error("Pixel dimensions must be positive integers.");
-  }
-  return width * height * UNIT_PRICE_CENTS;
-}
+export { calculatePriceCents } from "./pricing";
 
 export function formatUsd(cents: number): string {
   return new Intl.NumberFormat("en-US", {

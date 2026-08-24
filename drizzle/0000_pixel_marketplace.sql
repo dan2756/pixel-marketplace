@@ -46,10 +46,40 @@ CREATE TABLE IF NOT EXISTS claims (
   CONSTRAINT claims_dimensions CHECK (
     width > 0 AND height > 0 AND x + width <= 1280 AND y + height <= 720
   ),
+  CONSTRAINT claims_selection_size CHECK (
+    width >= 4 AND height >= 4
+    AND width * height >= 100
+    AND width * height <= 10000
+  ),
+  CONSTRAINT claims_unit_price CHECK (
+    unit_price_cents IN (20, 25)
+  ),
   CONSTRAINT claims_price_snapshot CHECK (
     unit_price_cents > 0 AND total_cents = width * height * unit_price_cents
   )
 );
+
+DO $$
+BEGIN
+  ALTER TABLE claims ADD CONSTRAINT claims_selection_size CHECK (
+    width >= 4 AND height >= 4
+    AND width * height >= 100
+    AND width * height <= 10000
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END
+$$;
+
+DO $$
+BEGIN
+  ALTER TABLE claims ADD CONSTRAINT claims_unit_price CHECK (
+    unit_price_cents IN (20, 25)
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END
+$$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS claims_idempotency_key_uq ON claims (idempotency_key);
 CREATE UNIQUE INDEX IF NOT EXISTS claims_checkout_session_id_uq

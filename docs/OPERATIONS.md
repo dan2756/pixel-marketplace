@@ -2,16 +2,16 @@
 
 ## Required production values
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | Pooled Neon Postgres URL |
-| `STRIPE_SECRET_KEY` | Prefer a least-privilege restricted key |
-| `STRIPE_WEBHOOK_SECRET` | Signature verification for the production endpoint |
-| `APP_URL` | Canonical HTTPS application origin |
-| `ALLOWED_ORIGIN` | Exact browser origin allowed to create Checkout |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Browser-visible Turnstile widget key |
-| `TURNSTILE_SECRET_KEY` | Server-only Siteverify secret |
-| `CRON_SECRET` | Bearer secret for reconciliation |
+| Variable                         | Purpose                                            |
+| -------------------------------- | -------------------------------------------------- |
+| `DATABASE_URL`                   | Pooled Neon Postgres URL                           |
+| `STRIPE_SECRET_KEY`              | Prefer a least-privilege restricted key            |
+| `STRIPE_WEBHOOK_SECRET`          | Signature verification for the production endpoint |
+| `APP_URL`                        | Canonical HTTPS application origin                 |
+| `ALLOWED_ORIGIN`                 | Exact browser origin allowed to create Checkout    |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Browser-visible Turnstile widget key               |
+| `TURNSTILE_SECRET_KEY`           | Server-only Siteverify secret                      |
+| `CRON_SECRET`                    | Bearer secret for reconciliation                   |
 
 Store server values as sensitive Vercel environment variables. Use distinct Stripe keys,
 webhook endpoints, databases, and Turnstile widgets for preview and production.

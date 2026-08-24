@@ -1,25 +1,29 @@
-import { ArrowUpRight, Grid2X2 } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { PRODUCT_NAME } from "@/lib/constants";
+import { BrandMark } from "@/components/BrandMark";
+import { PRODUCT_TAGLINE } from "@/lib/constants";
 import { getPublicRegion } from "@/server/claims";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
-}: PageProps<"/r/[id]">): Promise<Metadata> {
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   return {
     title: `Region ${id.slice(0, 8)}`,
-    description: `A permanent owned region on ${PRODUCT_NAME}.`,
+    description: `A permanent owned region on a 720p public mosaic. ${PRODUCT_TAGLINE}`,
     alternates: { canonical: `/r/${id}` },
   };
 }
 
-export default async function RegionPage({ params }: PageProps<"/r/[id]">) {
+export default async function RegionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
 
@@ -30,10 +34,7 @@ export default async function RegionPage({ params }: PageProps<"/r/[id]">) {
   return (
     <main className="region-page">
       <nav className="standalone-nav" aria-label="Region navigation">
-        <a className="brand" href="/">
-          <Grid2X2 size={18} />
-          {PRODUCT_NAME}
-        </a>
+        <BrandMark href="/" />
       </nav>
       <article className="standalone-card">
         <span className="eyebrow">Permanent region</span>
@@ -70,9 +71,9 @@ export default async function RegionPage({ params }: PageProps<"/r/[id]">) {
           >
             Visit destination <ArrowUpRight size={15} />
           </a>
-          <a className="secondary-button" href={`/?region=${region.id}`}>
+          <Link className="secondary-button" href={`/?region=${region.id}`}>
             View on canvas
-          </a>
+          </Link>
         </div>
       </article>
     </main>

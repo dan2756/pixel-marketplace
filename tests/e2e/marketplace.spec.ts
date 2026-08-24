@@ -34,7 +34,7 @@ test("desktop selection reaches a webhook-confirmed purchase status", async ({ p
   await page.route("**/api/checkout", async (route) => {
     const request = route.request();
     const body = request.postDataJSON();
-    expect(body.rect.width * body.rect.height).toBeGreaterThanOrEqual(2);
+    expect(body.rect.width * body.rect.height).toBeGreaterThanOrEqual(100);
     expect(body.destinationUrl).toBe("https://example.org/portfolio");
     await route.fulfill({
       status: 201,
@@ -97,8 +97,9 @@ test("deep-link viewport and keyboard selection are accessible", async ({ page }
   await canvas.press("Enter");
   await canvas.press("Shift+ArrowRight");
 
-  await expect(page.getByText("2", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Select at least 2 pixels.")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Configure selection" })).toBeVisible();
+  await expect(page.getByText("110").first()).toBeVisible();
+  await expect(page.getByText(/Select at least 100 pixels/)).toHaveCount(0);
   await expect(page).toHaveURL(/x=.*&y=.*&z=8/);
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Clock3, Copy, ExternalLink, RotateCw, Share2, TriangleAlert } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import type { ReservationStatus } from "@/lib/types";
@@ -81,7 +82,7 @@ export function SuccessStatus({ reservationId }: SuccessStatusProps) {
     if (!status?.regionUrl) return;
     if (navigator.share) {
       await navigator.share({
-        title: "My region on One Million Pixels",
+        title: "My region on the 720p frame",
         url: status.regionUrl,
       });
     } else {
@@ -92,13 +93,7 @@ export function SuccessStatus({ reservationId }: SuccessStatusProps) {
   return (
     <article className="standalone-card" aria-live="polite">
       <div className="status-icon" data-state={owned ? "owned" : "pending"}>
-        {owned ? (
-          <Check size={23} />
-        ) : failed ? (
-          <TriangleAlert size={22} />
-        ) : (
-          <Clock3 size={22} />
-        )}
+        {owned ? <Check size={23} /> : failed ? <TriangleAlert size={22} /> : <Clock3 size={22} />}
       </div>
       <span className="eyebrow">
         {owned ? "Webhook confirmed" : failed ? "Reservation released" : "Payment status"}
@@ -131,20 +126,24 @@ export function SuccessStatus({ reservationId }: SuccessStatusProps) {
       <div className="standalone-actions">
         {owned && status?.regionUrl ? (
           <>
-            <a className="primary-button" href={status.regionUrl}>
+            <Link className="primary-button" href={status.regionUrl}>
               View permanent region <ExternalLink size={14} />
-            </a>
+            </Link>
             <button className="secondary-button" type="button" onClick={() => void shareRegion()}>
               <Share2 size={14} /> Share
             </button>
-            <button className="secondary-button" type="button" onClick={() => void copyRegionLink()}>
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => void copyRegionLink()}
+            >
               <Copy size={14} /> {copied ? "Copied" : "Copy link"}
             </button>
           </>
         ) : failed ? (
-          <a className="primary-button" href="/">
+          <Link className="primary-button" href="/">
             Return to canvas
-          </a>
+          </Link>
         ) : (
           <button className="secondary-button" type="button" onClick={() => void loadStatus()}>
             <RotateCw size={14} /> Check again

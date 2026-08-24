@@ -11,7 +11,7 @@ export function getStripe(): Stripe {
     stripeClient = new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
       apiVersion: "2026-07-29.dahlia",
       appInfo: {
-        name: "One Million Pixels",
+        name: "720p Frame",
         version: "0.1.0",
         url: "https://github.com/dan2756/pixel-marketplace",
       },
