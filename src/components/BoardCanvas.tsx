@@ -9,6 +9,7 @@ import {
   BOARD_WIDTH,
   DETAIL_LOD_ZOOM,
   GRID_LOD_ZOOM,
+  SUGGESTED_STARTER_SIZE,
 } from "@/lib/constants";
 import {
   initialInteractionState,
@@ -464,9 +465,16 @@ export function BoardCanvas({
         setAnnouncement("Opened the owned region destination in a new tab.");
       } else {
         onModeChange("select");
-        onSelectionChange(suggestedStarterRect(keyboardCell));
-        keyboardAnchorRef.current = keyboardCell;
-        setAnnouncement("Selection started at 10 by 10. Hold Shift and use arrow keys to resize.");
+        const starter = suggestedStarterRect(keyboardCell);
+        onSelectionChange(starter);
+        keyboardAnchorRef.current = { x: starter.x, y: starter.y };
+        setKeyboardCell({
+          x: starter.x + starter.width - 1,
+          y: starter.y + starter.height - 1,
+        });
+        setAnnouncement(
+          `Selection started at ${SUGGESTED_STARTER_SIZE} by ${SUGGESTED_STARTER_SIZE}. Hold Shift and use arrow keys to resize.`,
+        );
       }
     }
   }

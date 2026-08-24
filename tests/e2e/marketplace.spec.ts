@@ -95,11 +95,13 @@ test("deep-link viewport and keyboard selection are accessible", async ({ page }
   });
   await canvas.focus();
   await canvas.press("Enter");
-  await canvas.press("Shift+ArrowRight");
-
   await expect(page.getByRole("heading", { name: "Configure selection" })).toBeVisible();
+  await expect(page.getByText("100").first()).toBeVisible();
+
+  await canvas.press("Shift+ArrowRight");
   await expect(page.getByText("110").first()).toBeVisible();
   await expect(page.getByText(/Select at least 100 pixels/)).toHaveCount(0);
+  await expect(page.getByText(/Width and height must each be at least 4/)).toHaveCount(0);
   await expect(page).toHaveURL(/x=.*&y=.*&z=8/);
 });
 
